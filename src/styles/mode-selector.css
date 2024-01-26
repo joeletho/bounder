@@ -1,0 +1,30 @@
+.bounder__mode-selector {
+    display: flex;
+    flex-direction: column;
+    width: 41px;
+    height: 100%;
+}
+
+.bounder__mode-selector button {
+    border: solid rgba(229, 225, 227, 0.8);
+    border-radius: 5px;
+    width: 40px;
+    height: 40px;
+    margin: 2px;
+}
+
+.bounder__mode-selector button img {
+    width: 25px;
+    height: 25px;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.bounder__mode-selector button:hover {
+    background: rgba(100, 149, 237, 0.7);
+}
+
+.bounder__mode-selector button.select {
+    border: inset rgba(229, 225, 227, 0.8);
+    background: gainsboro;
+}
