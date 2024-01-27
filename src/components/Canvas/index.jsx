@@ -16,7 +16,7 @@ const initialNode = {
 };
 
 function Canvas({ children }) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([initialNode]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const { minZoom, setMinZoom, maxZoom, setMaxZoom, fitView } = useViewport();
 
   // TODO: Must have access to ImageNode dimensions to calculate the extent and zoom
