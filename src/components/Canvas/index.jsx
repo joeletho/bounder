@@ -1,12 +1,11 @@
 import {
-  Background,
   BackgroundVariant,
-  Controls,
   Panel,
   Position,
   ReactFlow,
   ReactFlowProvider,
   useNodesState,
+  Background,
 } from '@xyflow/react';
 import { memo, useEffect } from 'react';
 import useViewport from '../../hooks/useViewport';
@@ -19,40 +18,49 @@ import useSelectorMode from '../../hooks/useSelectorMode';
 import { SelectorModes } from '../../utils/selector-modes';
 import ModeSelector from '../additional-components/ModeSelector';
 import Button from '../additional-components/Button';
-import IconSettings from '../../resources/icons/settings.png';
 import IconLiveFolder from '../../resources/icons/live-folder.png';
+import IconMaps from '../../resources/icons/map.png';
+import IconCleanUp from '../../resources/icons/clean-up.png';
+import IconGrainSize from '../../resources/icons/polygon-grain.png';
+import IconPixelData from '../../resources/icons/table-data.png';
 
 import '../../styles/sidebar.css';
 import '../../styles/navbar.css';
 import { DockPanelPosition } from '../../types/general';
 import Navbar from '../Navbar';
 import ImageUploadForm from '../additional-components/ImageUploadForm';
-
-const initialNode = {
-  id: 'test1',
-  type: 'imageNode',
-  position: {
-    x: 0,
-    y: 0,
-  },
-};
+import ViewportStatusBar from '../ViewportStatusBar';
 
 function Canvas({ children }) {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const { screenToFlowPosition, minZoom, setMinZoom, maxZoom, setMaxZoom, getZoom } = useViewport();
+  const {
+    screenToFlowPosition,
+    minZoom,
+    setMinZoom,
+    maxZoom,
+    setMaxZoom,
+    mousePosition,
+    zoom,
+    setViewportExtent,
+    getViewportExtent,
+    fitView,
+  } = useViewport();
   const { selectorMode, setSelectorMode } = useSelectorMode();
 
   // TODO: Must have access to ImageNode dimensions to calculate the extent and zoom
   const width = 3523;
   const height = 2028;
 
-  const padding = {
-    x: maxZoom * (width * (1 / 2)),
-    y: maxZoom * (height * (1 / 2)),
-  };
+  useEffect(() => {
+    const padding = {
+      x: maxZoom + width * (1 / 2),
+      y: maxZoom + height * (1 / 2),
+    };
 
-  const extentUpperLeft = [-padding.x, -padding.y];
-  const extentLowerRight = [width + padding.x, height + padding.y];
+    const extentUpperLeft = [-padding.x, -padding.y];
+    const extentLowerRight = [width + padding.x, height + padding.y];
+    setViewportExtent([extentUpperLeft, extentLowerRight]);
+  }, []);
 
   useEffect(() => {
     //TODO: This should be moved to a function that gets called on only two occasions:
@@ -84,10 +92,7 @@ function Canvas({ children }) {
       const initialHeight = 100;
       const initialRadius = initialWidth / 2;
 
-      const position = screenToFlowPosition(
-        event.clientX - initialRadius * getZoom(),
-        event.clientY - initialRadius * getZoom()
-      );
+      const position = screenToFlowPosition(event.clientX - initialRadius * zoom, event.clientY - initialRadius * zoom);
 
       const ellipse = {
         id: `ellipse_${nodes.length}`,
@@ -139,6 +144,21 @@ function Canvas({ children }) {
     reader.readAsDataURL(image);
   }
 
+  const topNavbarButtonStyle = {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      border: 'solid lightgray',
+      padding: '40px',
+      transform: 'rotate(0deg)',
+      marginLeft: '20px',
+    },
+    imageStyle: {
+      width: '40px',
+      height: '40px',
+    },
+  };
+
   function renderFileLoader() {
     return (
       <>
@@ -147,19 +167,8 @@ function Canvas({ children }) {
           buttonComponent={Button}
           buttonProps={{
             imageUrl: IconLiveFolder,
-            imageStyle: {
-              width: '40px',
-              height: '40px',
-            },
             label: 'Open...',
-            style: {
-              display: 'flex',
-              flexDirection: 'column',
-              border: 'solid lightgray',
-              padding: '30px',
-              transform: 'rotate(0deg)',
-              marginLeft: '20px',
-            },
+            ...topNavbarButtonStyle,
           }}
           onChange={setImage}
         />
@@ -167,11 +176,13 @@ function Canvas({ children }) {
     );
   }
 
+  console.log('asd');
+
   return (
     <>
       <div id={'bounder__canvas'} className={'bounder'}>
         <Navbar
-          id={'layers-navbar'}
+          id={'navbar__top'}
           style={{ translate: 0 }}
           className={'top-navbar'}
           position={DockPanelPosition.Top}
@@ -179,9 +190,27 @@ function Canvas({ children }) {
           // drawerPosition={DockPanelPosition.Left}
         >
           {renderFileLoader()}
+          <div
+            className={'bounder__mode-selector'}
+            style={{
+              position: 'absolute',
+              width: '100%',
+              display: 'flex',
+              flexGrow: 2,
+              flexDirection: 'row',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: -1,
+            }}
+          >
+            <Button id={'button__pixel-data'} imageUrl={IconPixelData} label={'Pixel Data'} {...topNavbarButtonStyle} />
+            <Button id={'button__map'} imageUrl={IconMaps} label={'Maps'} {...topNavbarButtonStyle} />
+            <Button id={'button__clean-up'} imageUrl={IconCleanUp} label={'Clean Up'} {...topNavbarButtonStyle} />
+            <Button id={'button__grain-size'} imageUrl={IconGrainSize} label={'Grain Size'} {...topNavbarButtonStyle} />
+          </div>
         </Navbar>
         <Navbar
-          id={'project-navbar'}
+          id={'navbar__left'}
           className={'left-navbar'}
           style={{
             borderTop: 'none',
@@ -192,7 +221,10 @@ function Canvas({ children }) {
           position={DockPanelPosition.Left}
           drawerComponent={Sidebar}
           drawerPosition={DockPanelPosition.Right}
-          drawerProps={{ className: 'left-sidebar' }}
+          drawerProps={{
+            id: 'sidebar__left',
+            className: 'left-sidebar',
+          }}
         />
         <ReactFlow
           className={'viewport'} // className={'dark'}
@@ -204,25 +236,32 @@ function Canvas({ children }) {
           onNodesChange={onNodesChange}
           maxZoom={maxZoom}
           minZoom={minZoom}
-          translateExtent={[extentUpperLeft, extentLowerRight]}
+          translateExtent={getViewportExtent()}
           onClick={onCanvasClickHandler}
         >
           <Panel position={Position.Top}>
             <ModeSelector />
           </Panel>
-          <Controls
-            className={'bounder__mode-selector'}
-            position={Position.Bottom}
-            style={{ display: 'flex', flexDirection: 'row', left: 0 }}
-          />
-          <Background variant={BackgroundVariant.Lines} lineWidth={'0.5'} gap={100} color={'#303030'} />
+          {/*<Controls*/}
+          {/*  className={'bounder__mode-selector'}*/}
+          {/*  position={Position.Bottom}*/}
+          {/*  style={{ display: 'flex', flexDirection: 'row', left: 0 }}*/}
+          {/*/>*/}
+          <Background variant={BackgroundVariant.Lines} lineWidth={0.5} gap={100} color={'#303030'} />
         </ReactFlow>
+        <ViewportStatusBar
+          className={'bounder__mode-selector'}
+          onFitView={() => fitView(nodes)}
+          zoom={zoom}
+          minZoom={minZoom}
+          maxZoom={maxZoom}
+        />
         <Navbar
-          id={'settings-navbar'}
+          id={'navbar__right'}
           className={'right-navbar'}
           style={{
             borderTop: 'none',
-            right: '6px',
+            right: '5.5px',
             top: '3px',
           }}
           buttonId={'button__settings'}
@@ -230,10 +269,13 @@ function Canvas({ children }) {
           position={DockPanelPosition.Right}
           drawerComponent={Sidebar}
           drawerPosition={DockPanelPosition.Left}
-          drawerProps={{ className: 'right-sidebar' }}
+          drawerProps={{
+            id: 'sidebar__right',
+            className: 'right-sidebar',
+          }}
         />
         <Navbar
-          id={'layers-navbar'}
+          id={'navbar__bottom'}
           className={'bottom-navbar'}
           buttonId={'button__layers'}
           buttonLabel={'Layers'}
@@ -242,6 +284,7 @@ function Canvas({ children }) {
           drawerComponent={Sidebar}
           drawerPosition={DockPanelPosition.Left}
           drawerProps={{
+            id: 'sidebar__bottom',
             className: 'bottom-sidebar',
           }}
         />

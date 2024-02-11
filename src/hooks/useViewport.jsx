@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Viewport, useReactFlow } from '@xyflow/react';
+import { Viewport, useReactFlow, useOnViewportChange } from '@xyflow/react';
 
 const DEFAULT_MAX_ZOOM = 10;
 const DEFAULT_MIN_ZOOM = 1;
@@ -12,10 +12,35 @@ export default function useViewport() {
   const reactFlow = useReactFlow();
   const [maxZoom, setMaxZoom] = useState(DEFAULT_MAX_ZOOM);
   const [minZoom, setMinZoom] = useState(DEFAULT_MIN_ZOOM);
+  const [viewportExtent, setViewportExtent] = useState([[0, 0], [0, 0]]);
   const [viewportTransitionSpeed, setViewportTransitionSpeed] = useState(DEFAULT_VIEWPORT_TRANSITION_SPEED);
   const [fitViewTransitionSpeed, setFitViewTransitionSpeed] = useState(DEFAULT_FITVIEW_TRANSITION_SPEED);
   const [viewportPadding, setViewportPadding] = useState(DEFAULT_VIEWPORT_PADDING);
   const [fitViewPadding, setFitViewPadding] = useState(DEFAULT_FITVIEW_PADDING);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    function updateMousePosition(event: MouseEvent) {
+      const position = screenToFlowPosition(event.clientX, event.clientY);
+      if (typeof position !== 'undefined') {
+        setMousePosition(position);
+      }
+    }
+
+    const pane = document.querySelector('.react-flow');
+    pane.addEventListener('mousemove', updateMousePosition);
+    return () => {
+      pane.removeEventListener('mousemove', updateMousePosition);
+    };
+  }, []);
+
+  useOnViewportChange({
+    onChange: (viewport) => {
+      setZoom(viewport.zoom);
+    },
+  });
+
 
   function getDefaultFitViewOptions() {
     return {
@@ -39,10 +64,6 @@ export default function useViewport() {
       options = getDefaultFitViewOptions();
     }
     reactFlow?.zoomOut(options);
-  }
-
-  function getZoom() {
-    return reactFlow?.getViewport().zoom;
   }
 
   function fitView({ nodes, options }) {
@@ -85,7 +106,11 @@ export default function useViewport() {
   };
 
   function screenToFlowPosition(x, y) {
-    return reactFlow?.screenToFlowPosition({ x, y });
+    return reactFlow?.screenToFlowPosition({ x, y }, false);
+  }
+
+  function getViewportExtent() {
+    return viewportExtent;
   }
 
   return {
@@ -93,7 +118,6 @@ export default function useViewport() {
     getViewport,
     zoomIn,
     zoomOut,
-    getZoom,
     fitView,
     maxZoom,
     minZoom,
@@ -103,5 +127,9 @@ export default function useViewport() {
     setViewportTransitionSpeed,
     screenToFlowPosition,
     getDefaultFitViewOptions,
+    setViewportExtent,
+    getViewportExtent,
+    mousePosition,
+    zoom,
   };
 }

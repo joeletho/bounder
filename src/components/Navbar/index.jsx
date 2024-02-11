@@ -7,6 +7,11 @@ import '../../styles/bounder.css';
 import { Panel } from '@xyflow/react';
 import { DockPanelPosition } from '../../types/general';
 
+//NOTE: `drawerComponent` may serve better as an array. This way, an collection of components can be
+// passed to the navbar to be rendered as tabbed views. Likewise, the navbar buttons will reflect
+// the components that are passed.
+// Example: drawerComponents: [PixelDataComponent, ...], buttons: [pixelDataButton, ...]
+
 function Navbar({
   id,
   buttonId,
