@@ -11,6 +11,7 @@ import '../../styles/mode-selector.css';
 const Sidebar = ({ id, hidden, className, position, children }) => {
   const [showSidebar, setShowSidebar] = useState(hidden ?? true);
 
+
   useEffect(() => {
     if (typeof hidden !== 'undefined') {
       setShowSidebar(!showSidebar);

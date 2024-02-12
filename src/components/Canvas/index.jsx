@@ -105,8 +105,26 @@ function Canvas({ children }) {
         selected: true,
         draggable: true,
       };
-
       setNodes([...prevNodes, ellipse]);
+    }
+
+    if (nodes.length > 0 && selectorMode === SelectorModes.FreeMove) {
+      const { x, y } = screenToFlowPosition(event.clientX, event.clientY);
+      if (x < 0 || x > width - 1 || y < 0 || y > height - 1) {
+        return;
+      }
+
+      const row = Math.round(x);
+      const col = Math.round(y);
+      console.log(row, col);
+
+      /* Get grain boundary and create GrainNode */
+      // const imgNode = nodes.find((node) => node.id === 'imageNode_1');
+      // const pixelValues = [];
+      // for (let i = 0; i < 3; i++) {
+      //   pixelValues.push(imgNode.data.bytes.at(i)?.at(row)?.at(col));
+      // }
+      // console.log(pixelValues);
     }
   }
 
@@ -135,9 +153,55 @@ function Canvas({ children }) {
     const reader = new FileReader();
     // FileReader handles this asynchronously, so we define the callback to execute once its finished loading
     reader.onload = () => {
+      const url = reader.result;
+
+      //FIXME: Coordinates go beyond the width and height of the image, even in the negative direction??
+      //  This is due to incorrect parsing of the image. Need to find the protocol/package to decode it.
+
+      /** This should be handled on the server with callable functions;
+       const [r,g,b,a] = image.getColorRgba(x,y);
+       const grain = image.getGrain(x,y); // perform BFS to find boundary containing coords x,y and create a grainNode
+       const bbox = boundary.getBoundingBox() // returns x,y,width, height
+       const boundary: number[][] = boundary.getBoundary();
+       ...
+
+       Grain data may include:
+       type GrainNode = Node & {
+            data: {
+              boundary: number[][],
+              boundingBox: {
+                x: number,
+                y: number,
+                width: number,
+                height: number
+              },
+              parent?: any,
+              eulerAngle?: number | string,
+              composition?: string,
+            },
+            ...
+          }
+       */
+
+      // let src = url.split(',')[1];
+      // src = atob(src);
+
+      // const bytes = [];
+      // for (let d = 0; d < 3; d++) {
+      //   const dim = [];
+      //   for (let r = 0; r < height; r++) {
+      //     const row = [];
+      //     for (let c = 0; c < width; c++) {
+      //       row.push(src.charCodeAt(d * height * width + r * width + c));
+      //     }
+      //     dim.push(row);
+      //   }
+      //   bytes.push(dim);
+      // }
+
       node.data = {
-        image: reader.result,
-        file: image,
+        url: url,
+        file: image, // bytes: bytes,
       };
       setNodes([...nodes, node]);
     };
@@ -176,8 +240,6 @@ function Canvas({ children }) {
     );
   }
 
-  console.log('asd');
-
   return (
     <>
       <div id={'bounder__canvas'} className={'bounder'}>
@@ -186,7 +248,7 @@ function Canvas({ children }) {
           style={{ translate: 0 }}
           className={'top-navbar'}
           position={DockPanelPosition.Top}
-          // drawerComponent={Sidebar}
+          // drawerTypes={Sidebar}
           // drawerPosition={DockPanelPosition.Left}
         >
           {renderFileLoader()}
@@ -216,10 +278,12 @@ function Canvas({ children }) {
             borderTop: 'none',
             top: '3px',
           }}
-          buttonId={'button__project'}
-          buttonLabel={'Project'}
           position={DockPanelPosition.Left}
-          drawerComponent={Sidebar}
+          toggleButtonProps={{
+            id: 'button__project',
+            label: 'Project',
+          }}
+          drawerTypes={Sidebar}
           drawerPosition={DockPanelPosition.Right}
           drawerProps={{
             id: 'sidebar__left',
@@ -264,10 +328,12 @@ function Canvas({ children }) {
             right: '5.5px',
             top: '3px',
           }}
-          buttonId={'button__settings'}
-          buttonLabel={'Settings'}
+          toggleButtonProps={{
+            id: 'button__settings',
+            label: 'Settings',
+          }}
           position={DockPanelPosition.Right}
-          drawerComponent={Sidebar}
+          drawerTypes={Sidebar}
           drawerPosition={DockPanelPosition.Left}
           drawerProps={{
             id: 'sidebar__right',
@@ -277,12 +343,14 @@ function Canvas({ children }) {
         <Navbar
           id={'navbar__bottom'}
           className={'bottom-navbar'}
-          buttonId={'button__layers'}
-          buttonLabel={'Layers'}
+          toggleButtonProps={{
+            id: 'button__layers',
+            label: 'Layers',
+          }}
           buttonStyle={{ margin: 0 }}
           position={DockPanelPosition.Bottom}
-          drawerComponent={Sidebar}
           drawerPosition={DockPanelPosition.Left}
+          drawerTypes={Sidebar}
           drawerProps={{
             id: 'sidebar__bottom',
             className: 'bottom-sidebar',

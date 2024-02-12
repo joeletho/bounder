@@ -7,9 +7,18 @@ import useViewport from '../../hooks/useViewport';
 function ViewportStatusBar({ className, zoom, minZoom, maxZoom, onFitView, children }) {
   const { mousePosition } = useViewport();
 
+  //TODO: Implement pixel measurement as such:
+  //  1 pixel = 10µm
+  //  Use relative window size to get width and height of viewport
+  //  Calculate a round measurement reference (ex: |_____ 100 nm _____|) based on width and height and pixel size
+  //  Display measurement reference on LHS of status bar
+  //  Update calculated measurement as necessary as the zoom value changes
+  // Note: The size of the measurement bar (i.e. |___ xyz ___|) may change based on users' display / browser settings
+  //  so be sure to pick an appropriate length
+
   return (
     <div className={'viewport-footer ' + className}>
-      <div style={{ paddingLeft: '10px' }}>|_____ 5nm _____|</div>
+      <div style={{ paddingLeft: '10px' }}>|______50µm______|</div>
       <div
         style={{
           display: 'flex',

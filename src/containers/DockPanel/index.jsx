@@ -1,4 +1,4 @@
-import { memo} from 'react';
+import { memo } from 'react';
 import { Panel } from '@xyflow/react';
 
 const DockPanel = ({ id, className, position, hidden, children, ...rest }) => {
@@ -7,7 +7,7 @@ const DockPanel = ({ id, className, position, hidden, children, ...rest }) => {
   }
 
   return (
-    <Panel position={position} id={id} className={className} {...rest}>
+    <Panel id={id} position={position} className={className} {...rest}>
       {children}
     </Panel>
   );

@@ -7,25 +7,27 @@ import '../../styles/bounder.css';
 import { Panel } from '@xyflow/react';
 import { DockPanelPosition } from '../../types/general';
 
-//NOTE: `drawerComponent` may serve better as an array. This way, an collection of components can be
+//NOTE: `drawerComponent` may serve better as an array. This way, a collection of components can be
 // passed to the navbar to be rendered as tabbed views. Likewise, the navbar buttons will reflect
 // the components that are passed.
 // Example: drawerComponents: [PixelDataComponent, ...], buttons: [pixelDataButton, ...]
 
 function Navbar({
   id,
-  buttonId,
-  buttonLabel,
-  buttonStyle,
+  // buttonId,
+  // buttonLabel,
+  // buttonStyle,
   className,
   position,
   style,
-  drawerComponent: DockPanel,
+  toggleButtonProps,
+  drawerTypes,
   drawerPosition,
   drawerProps,
   children,
 }) {
   const [currentButtonId, setCurrentButtonId] = useState(null);
+  const [currentDrawerIndex, setCurrentDrawerIndex] = useState(null);
   const [showDrawer, setShowDrawer] = useState(false);
 
   function selectButtonById(event) {
@@ -34,13 +36,19 @@ function Navbar({
 
     if (currentButtonId === id) {
       setCurrentButtonId(null);
+      setCurrentDrawerIndex(null);
       setShowDrawer(false);
       return;
     }
 
     document.getElementById(id).classList.toggle('select', true);
     setCurrentButtonId(id);
+    setCurrentDrawerIndex(toggleButtonProps?.find((button) => button.id === id));
     setShowDrawer(true);
+  }
+
+  if (!Array.isArray(toggleButtonProps)) {
+    toggleButtonProps = [toggleButtonProps].filter((button) => typeof button !== 'undefined');
   }
 
   if (position) {
@@ -52,47 +60,65 @@ function Navbar({
         width: 'auto',
         alightItems: 'center',
       };
-      buttonStyle = {
-        ...buttonStyle,
-        transform: 'rotate(0deg)',
-      };
+
+      toggleButtonProps.forEach((button, idx, arr) => {
+        button.style = {
+          ...style,
+          transform: 'rotate(0deg)',
+        };
+        arr[idx] = button;
+      });
     }
   }
 
-  function renderPanel() {
+  function renderToggleBar() {
     return (
       <Panel id={id} position={position} className={'bounder__navbar ' + className} style={style}>
-        {buttonLabel && (
-          <Button
-            id={buttonId}
-            className={'bounder__mode-selector'}
-            onClick={selectButtonById}
-            label={buttonLabel}
-            style={buttonStyle}
-          />
-        )}
+        {toggleButtonProps.map((button, idx) => {
+          return (
+            <Button
+              key={idx}
+              id={button.id}
+              className={'bounder__mode-selector'}
+              onClick={selectButtonById}
+              label={button.label}
+              style={button.style}
+            />
+          );
+        })}
         {children}
       </Panel>
     );
   }
 
-  if (!DockPanel) {
-    return <>{renderPanel()}</>;
+  if (!Array.isArray(drawerTypes)) {
+    drawerTypes = Array.from([drawerTypes].filter((drawer) => typeof drawer !== 'undefined'));
   }
+
+  if (!currentDrawerIndex || currentDrawerIndex >= drawerTypes.length) {
+    return <>{renderToggleBar()}</>;
+  }
+
+  if (!Array.isArray(drawerProps)) {
+    drawerProps = Array.from([drawerProps].filter((props) => typeof props !== 'undefined'));
+  }
+
+  const Drawer = drawerTypes.at(currentDrawerIndex);
+  const props = drawerProps?.at(currentDrawerIndex);
 
   if (drawerPosition && drawerPosition === DockPanelPosition.Left) {
     return (
       <>
-        <DockPanel hidden={showDrawer} {...drawerProps} />
-        {renderPanel()}
+        <Drawer hidden={showDrawer} {...props} />
+        {renderToggleBar()}
       </>
     );
   }
 
   return (
     <>
-      {renderPanel()}
-      <DockPanel hidden={showDrawer} {...drawerProps} />
+      {renderToggleBar()}
+      <Drawer hidden={showDrawer} {...props} />
     </>
   );
 }

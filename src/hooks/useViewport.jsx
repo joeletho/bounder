@@ -109,6 +109,10 @@ export default function useViewport() {
     return reactFlow?.screenToFlowPosition({ x, y }, false);
   }
 
+  function flowToScreenPosition(x, y) {
+    return reactFlow?.flowToScreenPosition({ x, y });
+  }
+
   function getViewportExtent() {
     return viewportExtent;
   }
@@ -126,6 +130,7 @@ export default function useViewport() {
     setMinZoom,
     setViewportTransitionSpeed,
     screenToFlowPosition,
+    flowToScreenPosition,
     getDefaultFitViewOptions,
     setViewportExtent,
     getViewportExtent,

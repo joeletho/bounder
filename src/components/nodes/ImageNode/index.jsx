@@ -10,12 +10,12 @@ function ImageNode(props: NodeProps) {
   const [image, setImage] = useState(null);
 
   useEffect(() => {
-    if (data?.image) {
-      setImage(data.image);
+    if (data?.url) {
+      setImage(data.url);
     }
-  }, [data?.image]);
+  }, [data?.url]);
 
-  if (!data?.image) {
+  if (!data?.url) {
     return;
   }
 

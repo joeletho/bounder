@@ -22,14 +22,17 @@ function ModeSelector({ initialMode, className, style, children }) {
       case 'a':
         selectButtonById(`button__${SelectorModes.AddEllipse}`, SelectorModes.AddEllipse);
         event.preventDefault();
+        event.stopPropagation();
         break;
       case 'f':
         selectButtonById(`button__${SelectorModes.FreeMove}`, SelectorModes.FreeMove);
         event.preventDefault();
+        event.stopPropagation();
         break;
       case 'r':
         selectButtonById(`button__${SelectorModes.Rotate}`, SelectorModes.Rotate);
         event.preventDefault();
+        event.stopPropagation();
         break;
     }
   }
@@ -61,6 +64,7 @@ function ModeSelector({ initialMode, className, style, children }) {
 
   function onClickModeSelectorHandler(event, mode) {
     selectButtonById(event.target.id, mode);
+    event.stopPropagation();
   }
 
   return (
